@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Simple Canvas",
+  "version": "2.0.0",
+  "description": "Replace the new tab page with a self-hosted Excalidraw canvas.",
+  "chrome_url_overrides": {
+    "newtab": "dist/src/newtab.html"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["dist/*", "dist/src/*", "dist/assets/*", "public/fonts/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

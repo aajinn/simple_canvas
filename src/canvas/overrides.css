@@ -1,0 +1,15 @@
+.excalidraw__embeddable-container__inner {
+  overflow: auto !important;
+}
+
+.excalidraw__embeddable {
+  overflow: auto !important;
+}
+
+.default-sidebar-trigger {
+  display: none !important;
+}
+
+.HelpDialog__header {
+  display: none !important;
+}

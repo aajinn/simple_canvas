@@ -1,0 +1,14 @@
+node_modules/
+dist/
+package-lock.json
+.opencode/
+.excalidraw/
+*.log
+.DS_Store
+Thumbs.db
+
+# Reference only — not part of the extension
+excalidraw-app/
+
+# Editor-specific
+.vscode/

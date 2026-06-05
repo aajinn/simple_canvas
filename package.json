@@ -1,0 +1,19 @@
+{
+  "name": "simple-canvas",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Chrome extension that replaces the new tab page with an Excalidraw-powered canvas.",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch"
+  },
+  "dependencies": {
+    "@excalidraw/excalidraw": "^0.18.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.2",
+    "vite": "^8.0.16"
+  }
+}
