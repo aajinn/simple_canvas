@@ -1,9 +1,10 @@
-import type { AppState } from "../types";
+import type { AppState, BinaryFiles } from "../types";
 import type { OrderedExcalidrawElement } from "../types";
 
 export interface SceneData {
   elements: readonly OrderedExcalidrawElement[];
   appState: AppState;
+  files?: BinaryFiles;
 }
 
 export interface CanvasInfo {

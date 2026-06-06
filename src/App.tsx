@@ -99,9 +99,9 @@ export default function App() {
   }, [activeCanvasId]);
 
   const onChange = useCallback(
-    (elements: readonly OrderedExcalidrawElement[], appState: AppState, _files: BinaryFiles) => {
+    (elements: readonly OrderedExcalidrawElement[], appState: AppState, files: BinaryFiles) => {
       if (!activeCanvasId) return;
-      saveCanvas(activeCanvasId, elements, appState);
+      saveCanvas(activeCanvasId, elements, appState, files);
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       setSaveIndicator(null);
       saveTimerRef.current = setTimeout(() => {

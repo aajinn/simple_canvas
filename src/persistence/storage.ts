@@ -1,5 +1,5 @@
 import { restoreAppState, restoreElements } from "@excalidraw/excalidraw";
-import type { AppState, ExcalidrawInitialDataState, OrderedExcalidrawElement } from "../types";
+import type { AppState, BinaryFiles, ExcalidrawInitialDataState, OrderedExcalidrawElement } from "../types";
 import type { CanvasInfo, CanvasRegistry } from "./types";
 
 const REGISTRY_KEY = "simple-canvas-registry";
@@ -76,6 +76,7 @@ export function loadCanvas(id: string): ExcalidrawInitialDataState | null {
         deleteInvisibleElements: true,
       }),
       appState: restoreAppState(parsed.appState ?? {}, null),
+      files: parsed.files ?? null,
     };
   } catch {
     return null;
@@ -86,6 +87,7 @@ export function saveCanvas(
   id: string,
   elements: readonly OrderedExcalidrawElement[],
   appState: AppState,
+  files?: BinaryFiles | null,
 ): void {
   try {
     localStorage.setItem(
@@ -98,6 +100,7 @@ export function saveCanvas(
           isLoading: false,
           errorMessage: null,
         },
+        files,
       }),
     );
     // update timestamp in registry
