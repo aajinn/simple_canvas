@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas } from "./canvas/Canvas";
 import { AppMenu } from "./ui/AppMenu";
 import { AppWelcomeScreen } from "./ui/WelcomeScreen";
@@ -28,6 +28,8 @@ export default function App() {
   const [activeCanvasId, setActiveCanvasId] = useState<string | null>(null);
   const [canvases, setCanvases] = useState<CanvasInfo[]>([]);
   const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI | null>(null);
+  const [saveIndicator, setSaveIndicator] = useState<string | null>(null);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { theme, setTheme, editorTheme } = useTheme();
 
   useHideMermaid();
@@ -98,12 +100,23 @@ export default function App() {
 
   const onChange = useCallback(
     (elements: readonly OrderedExcalidrawElement[], appState: AppState, _files: BinaryFiles) => {
-      if (activeCanvasId) {
-        saveCanvas(activeCanvasId, elements, appState);
-      }
+      if (!activeCanvasId) return;
+      saveCanvas(activeCanvasId, elements, appState);
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      setSaveIndicator(null);
+      saveTimerRef.current = setTimeout(() => {
+        setSaveIndicator("Saved");
+        setTimeout(() => setSaveIndicator(null), 1500);
+      }, 800);
     },
     [activeCanvasId],
   );
+
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, []);
 
   return (
     <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
@@ -119,6 +132,27 @@ export default function App() {
             <AppMenu theme={theme} onThemeChange={setTheme} onSwitchCanvas={handleShowDashboard} />
             <AppWelcomeScreen />
           </Canvas>
+        </div>
+      )}
+
+      {saveIndicator && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 16,
+            right: 16,
+            padding: "6px 14px",
+            borderRadius: 8,
+            background: "rgba(0,180,80,0.85)",
+            color: "#fff",
+            fontSize: 12,
+            fontWeight: 500,
+            zIndex: 100,
+            pointerEvents: "none",
+            transition: "opacity 0.2s",
+          }}
+        >
+          {saveIndicator}
         </div>
       )}
 
