@@ -34,7 +34,6 @@ jobs:
           cp manifest.json package/
           cp -r dist package/
           cp -r icons package/
-          cp -r public/fonts package/fonts
           cd package
           zip -r ../simple-canvas.zip .
 
