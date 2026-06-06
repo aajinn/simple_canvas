@@ -16,7 +16,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["dist/*", "dist/src/*", "dist/assets/*", "public/fonts/*"],
+      "resources": ["dist/*", "dist/src/*", "dist/assets/*"],
       "matches": ["<all_urls>"]
     }
   ]
