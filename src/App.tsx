@@ -129,7 +129,14 @@ export default function App() {
             theme={editorTheme}
             onChange={onChange}
           >
-            <AppMenu theme={theme} onThemeChange={setTheme} onSwitchCanvas={handleShowDashboard} />
+            <AppMenu
+              theme={theme}
+              onThemeChange={setTheme}
+              onSwitchCanvas={handleShowDashboard}
+              canvases={canvases}
+              activeCanvasId={activeCanvasId}
+              onOpenCanvas={openCanvas}
+            />
             <AppWelcomeScreen />
           </Canvas>
         </div>

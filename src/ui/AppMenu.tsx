@@ -1,13 +1,24 @@
 import { MainMenu } from "@excalidraw/excalidraw";
 import type { AppState } from "../types";
+import type { CanvasInfo } from "../persistence/types";
 
 interface AppMenuProps {
   theme: AppState["theme"] | "system";
   onThemeChange: (t: AppState["theme"] | "system") => void;
   onSwitchCanvas: () => void;
+  canvases: CanvasInfo[];
+  activeCanvasId: string | null;
+  onOpenCanvas: (id: string) => void;
 }
 
-export function AppMenu({ theme, onThemeChange, onSwitchCanvas }: AppMenuProps) {
+export function AppMenu({
+  theme,
+  onThemeChange,
+  onSwitchCanvas,
+  canvases,
+  activeCanvasId,
+  onOpenCanvas,
+}: AppMenuProps) {
   return (
     <MainMenu>
       <MainMenu.DefaultItems.LoadScene />
@@ -29,6 +40,16 @@ export function AppMenu({ theme, onThemeChange, onSwitchCanvas }: AppMenuProps) 
       <MainMenu.Item onSelect={onSwitchCanvas}>
         Canvas Dashboard
       </MainMenu.Item>
+      <MainMenu.Separator />
+      {canvases.map((c) => (
+        <MainMenu.Item
+          key={c.id}
+          selected={c.id === activeCanvasId}
+          onSelect={() => onOpenCanvas(c.id)}
+        >
+          {c.name}
+        </MainMenu.Item>
+      ))}
     </MainMenu>
   );
 }
