@@ -1,4 +1,4 @@
-import { restoreAppState, restoreElements } from "@excalidraw/excalidraw/data/restore";
+import { restoreAppState, restoreElements } from "@excalidraw/excalidraw";
 import type { AppState, ExcalidrawInitialDataState, OrderedExcalidrawElement } from "../types";
 import type { CanvasInfo, CanvasRegistry } from "./types";
 
