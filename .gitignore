@@ -11,3 +11,6 @@ excalidraw-app/
 
 # Editor-specific
 .vscode/
+
+# Graphify output
+graphify-out/
