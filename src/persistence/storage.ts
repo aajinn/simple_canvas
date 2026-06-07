@@ -1,6 +1,7 @@
 import { restoreAppState, restoreElements } from "@excalidraw/excalidraw";
 import type { AppState, BinaryFiles, ExcalidrawInitialDataState, OrderedExcalidrawElement } from "../types";
 import type { CanvasInfo, CanvasRegistry } from "./types";
+import { invalidatePreviewCache } from "../canvas/CanvasPreview";
 
 const REGISTRY_KEY = "simple-canvas-registry";
 const CANVAS_PREFIX = "simple-canvas-";
@@ -110,6 +111,7 @@ export function saveCanvas(
       canvas.updatedAt = Date.now();
       saveRegistry(registry);
     }
+    invalidatePreviewCache(id);
   } catch {
     // quota exceeded
   }

@@ -14,3 +14,5 @@ excalidraw-app/
 
 # Graphify output
 graphify-out/
+.agents
+.opencode

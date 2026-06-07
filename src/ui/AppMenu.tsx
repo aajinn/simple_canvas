@@ -9,6 +9,9 @@ interface AppMenuProps {
   canvases: CanvasInfo[];
   activeCanvasId: string | null;
   onOpenCanvas: (id: string) => void;
+  animationEnabled: boolean;
+  onToggleAnimation: () => void;
+  onAddFrame: () => void;
 }
 
 export function AppMenu({
@@ -18,6 +21,9 @@ export function AppMenu({
   canvases,
   activeCanvasId,
   onOpenCanvas,
+  animationEnabled,
+  onToggleAnimation,
+  onAddFrame,
 }: AppMenuProps) {
   return (
     <MainMenu>
@@ -29,6 +35,15 @@ export function AppMenu({
       <MainMenu.DefaultItems.SearchMenu />
       <MainMenu.DefaultItems.Help />
       <MainMenu.DefaultItems.ClearCanvas />
+      <MainMenu.Separator />
+      <MainMenu.Item onSelect={onToggleAnimation}>
+        {animationEnabled ? "Disable Animation" : "Enable Animation"}
+      </MainMenu.Item>
+      {animationEnabled && (
+        <MainMenu.Item onSelect={onAddFrame}>
+          Add Animation Frame
+        </MainMenu.Item>
+      )}
       <MainMenu.Separator />
       <MainMenu.DefaultItems.ToggleTheme
         allowSystemTheme

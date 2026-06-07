@@ -15,6 +15,8 @@ import {
   ensureDefaultCanvas,
 } from "./persistence";
 import { useHideMermaid } from "./utils/hide-mermaid";
+import { useAnimation } from "./animation";
+import { AnimationTimeline } from "./animation/AnimationTimeline";
 import type {
   AppState,
   BinaryFiles,
@@ -29,8 +31,55 @@ export default function App() {
   const [canvases, setCanvases] = useState<CanvasInfo[]>([]);
   const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI | null>(null);
   const [saveIndicator, setSaveIndicator] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const [animationEnabled, setAnimationEnabled] = useState(false);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { theme, setTheme, editorTheme } = useTheme();
+
+  const animation = useAnimation(activeCanvasId, excalidrawAPI);
+
+  // Reset API when canvas unmounts (excalidrawAPI prop doesn't fire null like ref)
+  useEffect(() => {
+    if (!activeCanvasId) {
+      setExcalidrawAPI(null);
+    }
+  }, [activeCanvasId]);
+
+  // Persist animation enabled state per canvas
+  useEffect(() => {
+    if (!activeCanvasId) return;
+    try {
+      const key = `simple-canvas-animation-enabled-${activeCanvasId}`;
+      const saved = localStorage.getItem(key);
+      setAnimationEnabled(saved === "true");
+    } catch {
+      setAnimationEnabled(false);
+    }
+  }, [activeCanvasId]);
+
+  const toggleAnimation = useCallback(() => {
+    setAnimationEnabled((prev) => {
+      const next = !prev;
+      if (activeCanvasId) {
+        try {
+          localStorage.setItem(`simple-canvas-animation-enabled-${activeCanvasId}`, String(next));
+        } catch { /* ignore */ }
+      }
+      return next;
+    });
+  }, [activeCanvasId]);
+
+  const showFrameToast = useCallback((msg: string) => {
+    setToast(msg);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToast(null), 2000);
+  }, []);
+
+  const handleAddFrame = useCallback(() => {
+    animation.addFrame();
+    showFrameToast("Frame added");
+  }, [animation.addFrame, showFrameToast]);
 
   useHideMermaid();
 
@@ -52,7 +101,7 @@ export default function App() {
     setCanvases(listCanvases());
   }, []);
 
-  // Escape to open dashboard
+  // Escape to open dashboard, Ctrl+Shift+A to add frame
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && activeCanvasId) {
@@ -63,10 +112,14 @@ export default function App() {
           handleShowDashboard();
         }
       }
+      if (e.key === "a" && e.ctrlKey && e.shiftKey && !locked && activeCanvasId && animationEnabled) {
+        e.preventDefault();
+        handleAddFrame();
+      }
     };
     window.addEventListener("keydown", onKeyDown, { capture: true });
     return () => window.removeEventListener("keydown", onKeyDown, { capture: true });
-  }, [locked, activeCanvasId, handleShowDashboard]);
+  }, [locked, activeCanvasId, handleShowDashboard, handleAddFrame, animationEnabled]);
 
   const initialData = useMemo(() => {
     if (!activeCanvasId) return {};
@@ -115,6 +168,7 @@ export default function App() {
   useEffect(() => {
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     };
   }, []);
 
@@ -136,6 +190,9 @@ export default function App() {
               canvases={canvases}
               activeCanvasId={activeCanvasId}
               onOpenCanvas={openCanvas}
+              animationEnabled={animationEnabled}
+              onToggleAnimation={toggleAnimation}
+              onAddFrame={handleAddFrame}
             />
             <AppWelcomeScreen />
           </Canvas>
@@ -146,7 +203,7 @@ export default function App() {
         <div
           style={{
             position: "fixed",
-            bottom: 16,
+            bottom: 60,
             right: 16,
             padding: "6px 14px",
             borderRadius: 8,
@@ -154,13 +211,55 @@ export default function App() {
             color: "#fff",
             fontSize: 12,
             fontWeight: 500,
-            zIndex: 100,
+            zIndex: 210,
             pointerEvents: "none",
             transition: "opacity 0.2s",
           }}
         >
           {saveIndicator}
         </div>
+      )}
+
+      {toast && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 70,
+            right: 16,
+            padding: "6px 14px",
+            borderRadius: 8,
+            background: "rgba(74,144,238,0.85)",
+            color: "#fff",
+            fontSize: 12,
+            fontWeight: 500,
+            zIndex: 210,
+            pointerEvents: "none",
+            transition: "opacity 0.2s",
+          }}
+        >
+          {toast}
+        </div>
+      )}
+
+      {activeCanvasId && !locked && animationEnabled && (
+        <AnimationTimeline
+          frames={animation.frames}
+          currentFrameIndex={animation.currentFrameIndex}
+          isPlaying={animation.isPlaying}
+          fps={animation.fps}
+          loop={animation.loop}
+          onAddFrame={handleAddFrame}
+          onDeleteFrame={animation.deleteFrame}
+          onRenameFrame={animation.renameFrame}
+          onGoToFrame={animation.goToFrame}
+          onPrevFrame={animation.prevFrame}
+          onNextFrame={animation.nextFrame}
+          onPlay={animation.startPlayback}
+          onStop={animation.stopPlayback}
+          onSetFps={animation.setFps}
+          onToggleLoop={animation.toggleLoop}
+          onClearFrames={animation.clearFrames}
+        />
       )}
 
       <Overlay

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { CanvasInfo } from "../persistence/types";
+import { CanvasPreview } from "../canvas/CanvasPreview";
 
 interface CanvasManagerProps {
   canvases: CanvasInfo[];
@@ -20,6 +21,7 @@ export function CanvasManager({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
 
   const handleCreate = () => {
     const name = newName.trim();
@@ -141,11 +143,14 @@ export function CanvasManager({
             return (
               <div
                 key={canvas.id}
-                onClick={() => !isEditing && !isConfirmingDelete && onOpen(canvas.id)}
+                onClick={() => {
+                  setMenuOpen(null);
+                  if (!isEditing && !isConfirmingDelete) onOpen(canvas.id);
+                }}
                 style={{
+                  position: "relative",
                   display: "flex",
                   flexDirection: "column",
-                  padding: 16,
                   borderRadius: 12,
                   background: isConfirmingDelete
                     ? "rgba(180,0,0,0.12)"
@@ -155,7 +160,8 @@ export function CanvasManager({
                     : "1px solid rgba(255,255,255,0.08)",
                   cursor: isEditing || isConfirmingDelete ? "default" : "pointer",
                   transition: "background 0.15s",
-                  minHeight: 120,
+                  overflow: "hidden",
+                  minHeight: 140,
                 }}
                 onMouseEnter={(e) => {
                   if (!isEditing && !isConfirmingDelete)
@@ -166,72 +172,175 @@ export function CanvasManager({
                     e.currentTarget.style.background = "rgba(255,255,255,0.06)";
                 }}
               >
-                {/* card icon */}
-                <div style={{ fontSize: 28, lineHeight: 1, marginBottom: 10, opacity: 0.6 }}>
-                  📄
+                {/* card preview - fills entire card */}
+                <div style={{ position: "absolute", inset: 0 }}>
+                  <CanvasPreview canvasId={canvas.id} />
                 </div>
 
-                {/* name */}
-                {isEditing ? (
-                  <input
-                    value={editValue}
-                    onChange={(e) => setEditValue(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") commitRename(canvas.id);
-                      if (e.key === "Escape") setEditingId(null);
-                    }}
-                    onBlur={() => commitRename(canvas.id)}
-                    autoFocus
-                    onClick={(e) => e.stopPropagation()}
-                    style={{
-                      width: "100%",
-                      padding: "4px 8px",
-                      borderRadius: 6,
-                      border: "1px solid rgba(255,255,255,0.3)",
-                      background: "rgba(255,255,255,0.1)",
-                      color: "rgba(255,255,255,0.9)",
-                      fontSize: 14,
-                      outline: "none",
-                      boxSizing: "border-box",
-                    }}
-                  />
-                ) : (
+                {/* gradient overlay */}
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%)",
+                  }}
+                />
+
+                {/* name overlay */}
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    padding: "12px",
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    if (!isEditing && !isConfirmingDelete) startRename(canvas);
+                  }}
+                >
+                  {isEditing ? (
+                    <input
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") commitRename(canvas.id);
+                        if (e.key === "Escape") setEditingId(null);
+                      }}
+                      onBlur={() => commitRename(canvas.id)}
+                      autoFocus
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        width: "100%",
+                        padding: "4px 8px",
+                        borderRadius: 6,
+                        border: "1px solid rgba(255,255,255,0.5)",
+                        background: "rgba(0,0,0,0.4)",
+                        color: "#fff",
+                        fontSize: 13,
+                        fontWeight: 500,
+                        outline: "none",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        color: isConfirmingDelete
+                          ? "rgba(255,150,150,0.9)"
+                          : "#fff",
+                        fontSize: 13,
+                        fontWeight: 500,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        textShadow: "0 1px 3px rgba(0,0,0,0.5)",
+                        cursor: "default",
+                      }}
+                    >
+                      {canvas.name}
+                    </div>
+                  )}
+                </div>
+
+                {/* actions - three dot menu in top right */}
+                {!isConfirmingDelete && (
                   <div
                     style={{
-                      flex: 1,
-                      color: isConfirmingDelete
-                        ? "rgba(255,150,150,0.9)"
-                        : "rgba(255,255,255,0.85)",
-                      fontSize: 14,
-                      fontWeight: 500,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      wordBreak: "break-word",
-                      lineHeight: 1.3,
+                      position: "absolute",
+                      top: 8,
+                      right: 8,
                     }}
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    {canvas.name}
+                    <button
+                      onClick={() =>
+                        setMenuOpen(menuOpen === canvas.id ? null : canvas.id)
+                      }
+                      style={{
+                        padding: "4px 6px",
+                        borderRadius: 4,
+                        border: "none",
+                        background: "rgba(0,0,0,0.4)",
+                        color: "rgba(255,255,255,0.8)",
+                        fontSize: 14,
+                        cursor: "pointer",
+                        lineHeight: 1,
+                        backdropFilter: "blur(4px)",
+                      }}
+                    >
+                      ⋮
+                    </button>
+                    {menuOpen === canvas.id && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          right: 0,
+                          top: "100%",
+                          marginTop: 4,
+                          background: "rgba(30,30,35,0.95)",
+                          border: "1px solid rgba(255,255,255,0.12)",
+                          borderRadius: 8,
+                          padding: 4,
+                          minWidth: 120,
+                          zIndex: 10,
+                        }}
+                      >
+                        <button
+                          onClick={() => {
+                            setMenuOpen(null);
+                            requestDelete(canvas.id);
+                          }}
+                          style={{
+                            width: "100%",
+                            padding: "8px 12px",
+                            borderRadius: 6,
+                            border: "none",
+                            background: "transparent",
+                            color: "rgba(255,100,100,0.9)",
+                            fontSize: 13,
+                            cursor: "pointer",
+                            textAlign: "left",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.background =
+                              "rgba(255,0,0,0.15)")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.background = "transparent")
+                          }
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {/* actions */}
-                {isConfirmingDelete ? (
+                {/* delete confirmation overlay */}
+                {isConfirmingDelete && (
                   <div
                     style={{
+                      position: "absolute",
+                      inset: 0,
                       display: "flex",
-                      gap: 6,
-                      marginTop: 12,
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      background: "rgba(180,0,0,0.3)",
                     }}
                     onClick={(e) => e.stopPropagation()}
                   >
                     <button
                       onClick={() => confirmDelete(canvas.id)}
                       style={{
-                        flex: 1,
-                        padding: "6px 12px",
+                        padding: "8px 16px",
                         borderRadius: 6,
                         border: "none",
-                        background: "rgba(200,50,50,0.8)",
+                        background: "rgba(200,50,50,0.9)",
                         color: "#fff",
                         fontSize: 12,
                         cursor: "pointer",
@@ -243,73 +352,16 @@ export function CanvasManager({
                     <button
                       onClick={cancelDelete}
                       style={{
-                        flex: 1,
-                        padding: "6px 12px",
+                        padding: "8px 16px",
                         borderRadius: 6,
-                        border: "1px solid rgba(255,255,255,0.2)",
+                        border: "1px solid rgba(255,255,255,0.3)",
                         background: "transparent",
-                        color: "rgba(255,255,255,0.7)",
+                        color: "rgba(255,255,255,0.8)",
                         fontSize: 12,
                         cursor: "pointer",
                       }}
                     >
                       Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 6,
-                      marginTop: 12,
-                      flexWrap: "wrap",
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      onClick={() => onOpen(canvas.id)}
-                      style={{
-                        padding: "5px 12px",
-                        borderRadius: 6,
-                        border: "none",
-                        background: "rgba(255,255,255,0.15)",
-                        color: "rgba(255,255,255,0.9)",
-                        fontSize: 12,
-                        cursor: "pointer",
-                        fontWeight: 600,
-                      }}
-                    >
-                      Open
-                    </button>
-                    <button
-                      onClick={() =>
-                        isEditing ? commitRename(canvas.id) : startRename(canvas)
-                      }
-                      style={{
-                        padding: "5px 12px",
-                        borderRadius: 6,
-                        border: "none",
-                        background: "rgba(255,255,255,0.08)",
-                        color: "rgba(255,255,255,0.65)",
-                        fontSize: 12,
-                        cursor: "pointer",
-                      }}
-                    >
-                      {isEditing ? "Save" : "Rename"}
-                    </button>
-                    <button
-                      onClick={() => requestDelete(canvas.id)}
-                      style={{
-                        padding: "5px 12px",
-                        borderRadius: 6,
-                        border: "none",
-                        background: "rgba(255,0,0,0.15)",
-                        color: "rgba(255,100,100,0.9)",
-                        fontSize: 12,
-                        cursor: "pointer",
-                      }}
-                    >
-                      Delete
                     </button>
                   </div>
                 )}

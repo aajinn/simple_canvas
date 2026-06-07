@@ -33,7 +33,7 @@ export function Canvas({
 }: CanvasProps) {
   return (
     <Excalidraw
-      ref={onRef}
+      excalidrawAPI={onRef}
       initialData={initialData ?? {}}
       onChange={onChange}
       theme={theme}
